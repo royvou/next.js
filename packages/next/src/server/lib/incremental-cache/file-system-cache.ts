@@ -339,6 +339,25 @@ export default class FileSystemCache implements CacheHandler {
           })
         )
       }
+    } else if (data?.kind === 'REDIRECT') {
+      try {
+        await this.fs.rm(
+          (
+            await this.getFsPath({
+              pathname: `${key}.html`,
+            })
+          ).filePath
+        )
+        await this.fs.rm(
+          (
+            await this.getFsPath({
+              pathname: `${key}.json`,
+            })
+          ).filePath
+        )
+      } catch (error) {
+        // unable to delete html page
+      }
     } else if (data?.kind === 'FETCH') {
       const { filePath } = await this.getFsPath({
         pathname: key,
@@ -347,6 +366,27 @@ export default class FileSystemCache implements CacheHandler {
       await this.fs.mkdir(path.dirname(filePath))
       await this.fs.writeFile(filePath, JSON.stringify(data))
       await this.setTags(key, data.data.tags || [])
+    } else if (data?.kind === 'IMAGE') {
+      // Ignore images
+    } else {
+      try {
+        await this.fs.rm(
+          (
+            await this.getFsPath({
+              pathname: `${key}.html`,
+            })
+          ).filePath
+        )
+        await this.fs.rm(
+          (
+            await this.getFsPath({
+              pathname: `${key}.json`,
+            })
+          ).filePath
+        )
+      } catch (error) {
+        // unable to delete html page
+      }
     }
   }
 
@@ -385,7 +425,7 @@ export default class FileSystemCache implements CacheHandler {
         isAppPath,
       }
     try {
-      await this.fs.readFile(filePath)
+      await this.fs.stat(filePath)
       return {
         filePath,
         isAppPath,
