@@ -1,11 +1,11 @@
-import type { OutgoingHttpHeaders } from 'http'
 import type { CacheHandler, CacheHandlerContext, CacheHandlerValue } from './'
 
-import LRUCache from 'next/dist/compiled/lru-cache'
 import { CacheFs } from '../../../shared/lib/utils'
-import path from '../../../shared/lib/isomorphic/path'
 import { CachedFetchValue } from '../../response-cache'
+import LRUCache from 'next/dist/compiled/lru-cache'
 import { NEXT_CACHE_TAGS_HEADER } from '../../../lib/constants'
+import type { OutgoingHttpHeaders } from 'http'
+import path from '../../../shared/lib/isomorphic/path'
 
 type FileSystemCacheContext = Omit<
   CacheHandlerContext,
@@ -355,6 +355,27 @@ export default class FileSystemCache implements CacheHandler {
           tags: ctx.tags,
         })
       )
+    } else if (data?.kind === 'IMAGE') {
+      // Ignore images
+    } else if (data?.kind === 'REDIRECT' || typeof data === 'undefined') {
+      try {
+        await this.fs.rm(
+          (
+            await this.getFsPath({
+              pathname: `${key}.html`,
+            })
+          ).filePath
+        )
+        await this.fs.rm(
+          (
+            await this.getFsPath({
+              pathname: `${key}.json`,
+            })
+          ).filePath
+        )
+      } catch (error) {
+        // unable to delete html page
+      }
     }
   }
 
@@ -393,7 +414,7 @@ export default class FileSystemCache implements CacheHandler {
         isAppPath,
       }
     try {
-      await this.fs.readFile(filePath)
+      await this.fs.stat(filePath)
       return {
         filePath,
         isAppPath,

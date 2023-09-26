@@ -40,6 +40,7 @@ export function createIncrementalCache(
       writeFile: (f, d) => fs.promises.writeFile(f, d),
       mkdir: (dir) => fs.promises.mkdir(dir, { recursive: true }),
       stat: (f) => fs.promises.stat(f),
+      rm: (f) => fs.promises.rm(f),
     },
     serverDistDir: path.join(distDir, 'server'),
     CurCacheHandler: CacheHandler,
